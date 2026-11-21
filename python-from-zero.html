@@ -1,0 +1,1336 @@
+<meta charset="utf-8">
+<title>Python From Zero</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: course map on the left, one lesson at a time on the right; each lesson = read, try the example, solve the task. */
+:root{
+  --bg:#F3F5F2; --surface:#FFFFFF; --ink:#16231F; --muted:#56665F; --line:#D7DFDA;
+  --accent:#0F6B5C; --accent-ink:#FFFFFF; --accent-soft:#DDEFEA; --sun:#F2B33D; --sun-ink:#2A1E05;
+  --code-bg:#14241F; --code-fg:#E3EEEA; --code-dim:#8FA9A0;
+  --ok:#1E7A46; --ok-soft:#E1F3E8; --bad:#B3261E; --bad-soft:#FBE7E5;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-code:"JetBrains Mono", Consolas, "Courier New", monospace;
+  --radius:10px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0E1613; --surface:#15201C; --ink:#E3ECE8; --muted:#97A8A1; --line:#26342F;
+  --accent:#5CC6B0; --accent-ink:#06201A; --accent-soft:#163932; --sun:#F2B33D; --sun-ink:#2A1E05;
+  --code-bg:#09110E; --code-fg:#E3EEEA; --code-dim:#7F978F;
+  --ok:#62CF92; --ok-soft:#14301F; --bad:#FF8F85; --bad-soft:#3A1714; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0E1613; --surface:#15201C; --ink:#E3ECE8; --muted:#97A8A1; --line:#26342F;
+  --accent:#5CC6B0; --accent-ink:#06201A; --accent-soft:#163932; --sun:#F2B33D; --sun-ink:#2A1E05;
+  --code-bg:#09110E; --code-fg:#E3EEEA; --code-dim:#7F978F;
+  --ok:#62CF92; --ok-soft:#14301F; --bad:#FF8F85; --bad-soft:#3A1714; color-scheme:dark }
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.6}
+a{color:var(--accent)}
+:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;display:flex;align-items:center;gap:12px;
+  background:var(--surface);border-bottom:1px solid var(--line);
+  padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--surface)}
+.brand{font-family:var(--f-display);font-weight:800;font-size:1.25rem;letter-spacing:-.01em;text-decoration:none;color:var(--ink);display:flex;align-items:center;gap:8px}
+.brand .prompt{font-family:var(--f-code);font-size:.95rem;color:var(--accent);font-weight:600}
+.progress{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:.85rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.bar{width:120px;height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .4s}
+.menu-btn{display:none;font:inherit;font-weight:700;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;padding:6px 12px;cursor:pointer}
+
+.shell{display:grid;grid-template-columns:300px minmax(0,1fr);min-height:calc(100% - 56px)}
+nav.map{border-right:1px solid var(--line);background:var(--surface);padding:18px 14px 40px;position:sticky;top:57px;height:calc(100vh - 57px);overflow-y:auto}
+.lvl{margin-bottom:18px}
+.lvl h3{font-family:var(--f-display);font-size:.78rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:0 0 6px 8px;font-weight:700}
+.lvl a{display:flex;gap:10px;align-items:baseline;padding:6px 8px;border-radius:8px;text-decoration:none;color:var(--ink);font-size:.94rem;line-height:1.35}
+.lvl a:hover{background:var(--accent-soft)}
+.lvl a.on{background:var(--accent);color:var(--accent-ink)}
+.lvl a .no{font-family:var(--f-code);font-size:.75rem;color:var(--muted);min-width:2.2em}
+.lvl a.on .no{color:inherit;opacity:.8}
+.lvl a .tick{margin-left:auto;color:var(--ok);font-weight:700}
+.lvl a.on .tick{color:inherit}
+
+main{min-width:0;padding-block:28px 80px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.page{max-width:780px;margin:0 auto}
+.eyebrow{font-family:var(--f-code);font-size:.8rem;color:var(--accent);letter-spacing:.04em}
+h1{font-family:var(--f-display);font-weight:800;font-size:clamp(1.9rem,4vw,2.6rem);line-height:1.1;letter-spacing:-.02em;margin:.2em 0 .5em;text-wrap:balance}
+h2{font-family:var(--f-display);font-weight:700;font-size:1.35rem;margin:1.6em 0 .4em;text-wrap:balance}
+.prose p,.prose li{max-width:66ch}
+.prose code,.inline{font-family:var(--f-code);font-size:.86em;background:var(--accent-soft);padding:.1em .35em;border-radius:5px}
+.prose table{border-collapse:collapse;margin:.8em 0;font-size:.95rem}
+.tablewrap{overflow-x:auto}
+.prose th,.prose td{border-bottom:1px solid var(--line);padding:6px 12px 6px 0;text-align:left;vertical-align:top}
+.prose th{font-family:var(--f-display);font-size:.85rem;color:var(--muted)}
+kbd{font-family:var(--f-code);font-size:.8em;border:1px solid var(--line);border-bottom-width:3px;border-radius:6px;padding:.05em .45em;background:var(--surface);white-space:nowrap}
+.note{border-left:4px solid var(--sun);background:var(--surface);padding:10px 14px;border-radius:0 8px 8px 0;margin:1em 0}
+
+.lab{background:var(--code-bg);border-radius:var(--radius);overflow:hidden;margin:1em 0 1.4em}
+.lab-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px 8px 14px;border-bottom:1px solid rgba(255,255,255,.07)}
+.lab-head .tag{font-family:var(--f-code);font-size:.75rem;color:var(--code-dim);margin-right:auto;letter-spacing:.05em;text-transform:uppercase}
+.btn{font:inherit;font-size:.88rem;font-weight:700;border:0;border-radius:7px;padding:7px 14px;cursor:pointer;line-height:1.2}
+.btn.run{background:var(--sun);color:var(--sun-ink)}
+.btn.check{background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;color:var(--code-fg);border:1px solid rgba(255,255,255,.2)}
+.btn:disabled{opacity:.5;cursor:wait}
+textarea.code{display:block;width:100%;min-height:120px;resize:vertical;border:0;background:transparent;color:var(--code-fg);
+  font-family:var(--f-code);font-size:.92rem;line-height:1.6;padding:12px 14px;tab-size:4;white-space:pre;overflow-x:auto}
+textarea.code:focus{outline:none;box-shadow:inset 0 0 0 2px var(--sun)}
+.inputs{display:flex;gap:10px;align-items:flex-start;padding:8px 14px;border-top:1px solid rgba(255,255,255,.07);flex-wrap:wrap}
+.inputs label{font-family:var(--f-code);font-size:.75rem;color:var(--code-dim);padding-top:6px;text-transform:uppercase;letter-spacing:.05em}
+.inputs textarea{flex:1;min-width:0;min-height:44px;background:rgba(255,255,255,.05);color:var(--code-fg);border:1px solid rgba(255,255,255,.12);border-radius:6px;font-family:var(--f-code);font-size:.85rem;padding:6px 8px;resize:vertical}
+.out{border-top:1px solid rgba(255,255,255,.07);background:rgba(0,0,0,.22);color:var(--code-fg);font-family:var(--f-code);font-size:.88rem;padding:10px 14px;white-space:pre-wrap;word-break:break-word;min-height:44px}
+.out .dim{color:var(--code-dim)}
+.out .err{color:#FF9C92}
+.out .why{display:block;margin-top:6px;color:#F6D58E;font-family:var(--f-body);font-size:.92rem}
+
+.task{border:2px solid var(--accent);border-radius:calc(var(--radius) + 4px);padding:16px 16px 4px;margin:1.8em 0;background:var(--surface)}
+.task h2{margin-top:0;display:flex;align-items:center;gap:8px}
+.task h2 .pill{font-family:var(--f-code);font-size:.72rem;font-weight:600;background:var(--accent);color:var(--accent-ink);padding:3px 8px;border-radius:99px;letter-spacing:.05em}
+.result{border-radius:8px;padding:10px 14px;margin:-.4em 0 1em;font-weight:700}
+.result.ok{background:var(--ok-soft);color:var(--ok)}
+.result.bad{background:var(--bad-soft);color:var(--bad)}
+details{margin:0 0 12px}
+summary{cursor:pointer;font-weight:700;color:var(--accent)}
+details pre{background:var(--code-bg);color:var(--code-fg);font-family:var(--f-code);font-size:.88rem;padding:12px 14px;border-radius:8px;overflow-x:auto}
+
+.pager{display:flex;justify-content:space-between;gap:12px;margin-top:2.2em;flex-wrap:wrap}
+.pager a{flex:1 1 220px;text-decoration:none;border:1px solid var(--line);background:var(--surface);border-radius:var(--radius);padding:12px 16px;color:var(--ink)}
+.pager a:hover{border-color:var(--accent)}
+.pager small{display:block;color:var(--muted);font-size:.8rem}
+.pager .next{text-align:right}
+
+.levels{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:14px;margin:1.4em 0}
+.lcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:6px;text-decoration:none;color:var(--ink)}
+.lcard:hover{border-color:var(--accent)}
+.lcard .k{font-family:var(--f-code);font-size:.75rem;color:var(--accent)}
+.lcard b{font-family:var(--f-display);font-size:1.15rem}
+.lcard span{color:var(--muted);font-size:.92rem;line-height:1.45}
+.lcard .mini{margin-top:auto;padding-top:8px;font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.cta{display:inline-block;background:var(--accent);color:var(--accent-ink);text-decoration:none;font-weight:700;padding:12px 22px;border-radius:9px;font-size:1.05rem}
+
+.sites{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:12px;margin:1em 0}
+.site{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px;display:flex;flex-direction:column;gap:4px}
+.site a{font-family:var(--f-display);font-weight:700;font-size:1.05rem;text-decoration:none}
+.site .lv{font-family:var(--f-code);font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.site p{margin:0;font-size:.92rem;color:var(--muted);line-height:1.45}
+.boot{font-size:.85rem;color:var(--muted)}
+
+@media (max-width:860px){
+  .shell{grid-template-columns:minmax(0,1fr)}
+  nav.map{position:fixed;inset:57px auto 0 0;width:min(320px,88vw);height:auto;z-index:15;transform:translateX(-105%);transition:transform .25s;box-shadow:0 10px 40px rgba(0,0,0,.25);padding-left:max(14px,env(safe-area-inset-left,0px))}
+  nav.map.open{transform:none}
+  .menu-btn{display:inline-block}
+  .bar{width:70px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header class="topbar">
+  <button class="menu-btn" id="menuBtn" aria-controls="map" aria-expanded="false">Lessons</button>
+  <a class="brand" href="#home"><span class="prompt">&gt;&gt;&gt;</span> Python From Zero</a>
+  <div class="progress"><span id="progTxt">0 / 0</span><div class="bar"><i id="progBar"></i></div></div>
+</header>
+<div class="shell">
+  <nav class="map" id="map" aria-label="Course lessons"></nav>
+  <main><div class="page" id="page"></div></main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/brython@3.12.4/brython.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/brython@3.12.4/brython_stdlib.js"></script>
+<script type="text/python" id="pyboot">
+from browser import window
+import sys
+
+class _Out:
+    def __init__(self):
+        self.buf = []
+    def write(self, s):
+        self.buf.append(str(s))
+    def flush(self):
+        pass
+
+def _run(src, inputs):
+    out = _Out()
+    old = (sys.stdout, sys.stderr)
+    sys.stdout = out
+    sys.stderr = out
+    lines = str(inputs).split("\n") if inputs else []
+    def fake_input(prompt=""):
+        out.write(str(prompt))
+        v = lines.pop(0) if lines else ""
+        out.write(v + "\n")
+        return v
+    ns = {"__name__": "__main__", "input": fake_input}
+    status = "1"
+    try:
+        exec(src, ns)
+    except BaseException as e:
+        status = "0"
+        line = getattr(e, "lineno", None)
+        tb = e.__traceback__
+        while tb is not None:
+            line = tb.tb_lineno
+            tb = tb.tb_next
+        prefix = ("Line " + str(line) + " -> ") if line else ""
+        out.write("\u0000" + prefix + type(e).__name__ + ": " + str(e) + "\n")
+    finally:
+        sys.stdout, sys.stderr = old
+    return status + "".join(out.buf)
+
+window.pyRun = _run
+</script>
+
+<script>
+/* ---------------- course content ---------------- */
+const LEVELS = [
+  {id:"0", name:"Level 0 · Computer basics", short:"Never used code before? Start here: the keyboard, this page, and what a program is."},
+  {id:"1", name:"Level 1 · Beginner", short:"Printing, variables, math, text, questions, decisions, lists and loops."},
+  {id:"2", name:"Level 2 · Intermediate", short:"Functions, dictionaries, string tools, comprehensions, errors and modules."},
+  {id:"3", name:"Level 3 · Advanced", short:"Classes, recursion, generators, decorators, algorithms and a capstone."},
+  {id:"4", name:"Next steps", short:"Install Python on your computer and keep practising with free games."}
+];
+
+const L = [];
+const add = o => L.push(o);
+
+/* ===== LEVEL 0 ===== */
+add({id:"how-this-works", lv:"0", title:"How this page works",
+body:`<p>Welcome! You do not need to know anything about computers to start. This page is your classroom, your notebook and your practice machine at the same time.</p>
+<p>Every lesson has three parts:</p>
+<ol><li><b>Read</b> a short explanation (like this one).</li>
+<li><b>Try</b> an example in a dark <b>code box</b>. Click the yellow <b>Run</b> button and the result appears underneath.</li>
+<li><b>Solve</b> a small task in the green box. Click <b>Check my answer</b> to see if you got it.</li></ol>
+<h2>Keys you will use</h2>
+<div class="tablewrap"><table><tr><th>Key</th><th>What it does</th></tr>
+<tr><td><kbd>Enter</kbd></td><td>Starts a new line.</td></tr>
+<tr><td><kbd>Backspace</kbd></td><td>Deletes the letter to the left of the blinking line (the cursor).</td></tr>
+<tr><td><kbd>Shift</kbd></td><td>Hold it down while pressing another key to get capital letters and symbols such as <kbd>"</kbd> <kbd>(</kbd> <kbd>)</kbd> <kbd>:</kbd></td></tr>
+<tr><td><kbd>Tab</kbd></td><td>Inside a code box, adds 4 spaces. Python uses spaces to group lines.</td></tr>
+<tr><td><kbd>Ctrl</kbd> + <kbd>Enter</kbd></td><td>A shortcut for clicking Run.</td></tr>
+<tr><td>← → ↑ ↓</td><td>Arrow keys move the cursor without deleting anything.</td></tr></table></div>
+<p>To type inside a code box, <b>click on it first</b>. A blinking line shows where your letters will go.</p>
+<div class="note">You cannot break anything here. If a code box gets messy, click <b>Reset</b> to get the original back. Your progress is saved in this browser.</div>`,
+example:`print("Hello!")`,
+task:{prompt:`Change <code>Hello!</code> to your own name, keeping the quote marks around it. Then click <b>Run</b>, and then <b>Check my answer</b>.`,
+starter:`print("Hello!")`,
+check:(out)=> out.trim() && out.trim()!=="Hello!" ? true : "Change the words between the quote marks, then try again.",
+hint:`Click just before the <b>!</b>, press Backspace until <b>Hello</b> is gone, and type your name.`,
+solution:`print("Sam")`}});
+
+add({id:"what-is-a-program", lv:"0", title:"What is a program?",
+body:`<p>A <b>program</b> is a list of instructions for a computer, like a recipe. The computer follows the instructions <b>from top to bottom</b>, one line at a time, and it does <b>exactly</b> what you write. It never guesses what you meant.</p>
+<p><b>Python</b> is a language for writing those instructions. It was designed to look close to plain English, which is why it is a popular first language. It is also used by professionals for websites, data science, artificial intelligence, automation and games.</p>
+<p>Run the example and watch the order of the output: it matches the order of the lines.</p>
+<h2>Copy and paste</h2>
+<p>To move a line: hold the mouse button down at the start of the line, drag to the end so it turns highlighted, press <kbd>Ctrl</kbd>+<kbd>X</kbd> to cut it, click where it should go, and press <kbd>Ctrl</kbd>+<kbd>V</kbd> to paste. <kbd>Ctrl</kbd>+<kbd>C</kbd> copies without removing. <kbd>Ctrl</kbd>+<kbd>Z</kbd> undoes a mistake.</p>`,
+example:`print("Step 1: crack the eggs")
+print("Step 2: whisk them")
+print("Step 3: cook in a pan")`,
+task:{prompt:`The lines below are in the wrong order. Rearrange them so the output is <code>1</code>, then <code>2</code>, then <code>3</code>.`,
+starter:`print(3)
+print(1)
+print(2)`,
+check:(out)=> out.trim().split(/\s+/).join(",")==="1,2,3" ? true : "The output should be 1, 2, 3 in that order.",
+hint:`Cut the first line with Ctrl+X and paste it at the bottom. Or simply retype the numbers.`,
+solution:`print(1)
+print(2)
+print(3)`}});
+
+add({id:"reading-errors", lv:"0", title:"Mistakes are normal",
+body:`<p>Every programmer, including experts, sees error messages every day. An error is not a failure; it is Python telling you which line confused it.</p>
+<p>When something goes wrong, the output shows the <b>line number</b> and the <b>type of error</b>, and this page adds a plain-English tip in yellow. The common ones:</p>
+<div class="tablewrap"><table><tr><th>Error</th><th>Usually means</th></tr>
+<tr><td><code>SyntaxError</code></td><td>Python could not read the line: a missing bracket, quote or colon.</td></tr>
+<tr><td><code>NameError</code></td><td>A word Python does not know. Often a spelling or capital-letter mistake. <code>Print</code> is not <code>print</code>.</td></tr>
+<tr><td><code>IndentationError</code></td><td>The spaces at the start of a line are wrong.</td></tr>
+<tr><td><code>TypeError</code></td><td>Mixing things that do not go together, like adding text to a number.</td></tr></table></div>
+<p>Run the example to see a real error, then fix it by changing the capital <b>P</b> to a small <b>p</b>.</p>`,
+example:`Print("Python cares about capital letters")`,
+task:{prompt:`This code has <b>two</b> mistakes. Fix both so it prints both sentences.`,
+starter:`Print("I can fix errors")
+print("almost there"`,
+check:(out)=> /I can fix errors/.test(out)&&/almost there/.test(out) ? true : "Both sentences need to appear. Look for a capital letter and a missing bracket.",
+hint:`Line 1: <code>Print</code> should be <code>print</code>. Line 2: every <code>(</code> needs a matching <code>)</code>.`,
+solution:`print("I can fix errors")
+print("almost there")`}});
+
+/* ===== LEVEL 1 ===== */
+add({id:"print-and-comments", lv:"1", title:"Printing and comments",
+body:`<p><code>print()</code> shows something on the screen. Text goes inside quote marks; numbers do not need them. You can print several things at once by separating them with commas, and Python puts a space between them.</p>
+<p>A line that starts with <code>#</code> is a <b>comment</b>. Python ignores it. Comments are notes for humans, including future you.</p>`,
+example:`# This is a comment. Python skips it.
+print("I am learning Python")
+print(2026)
+print("Lessons today:", 3)
+print()   # an empty print makes a blank line
+print("Done!")`,
+task:{prompt:`Write a program that prints <code>Python is fun</code> on one line and <code>I am learning</code> on the next. Add at least one comment.`,
+starter:`# write your code below
+`,
+check:(out,code)=>{ if(!/Python is fun/.test(out)) return "Print the exact words: Python is fun"; if(!/I am learning/.test(out)) return "Also print: I am learning"; if(!/#/.test(code)) return "Add a comment: a line starting with #"; return true;},
+hint:`You need two <code>print("...")</code> lines.`,
+solution:`# my first real program
+print("Python is fun")
+print("I am learning")`}});
+
+add({id:"variables", lv:"1", title:"Variables: labelled boxes",
+body:`<p>A <b>variable</b> is a name that holds a value, like a labelled box. You create one with <code>=</code>, which in Python means "put this value in this box", not "is equal to".</p>
+<p>You can change what is in the box later, and use the name anywhere instead of the value.</p>
+<p><b>Naming rules:</b> use letters, numbers and underscores; no spaces; do not start with a number. Good names describe the contents: <code>total_price</code> is better than <code>x</code>.</p>`,
+example:`name = "Maya"
+age = 12
+print(name, "is", age)
+
+age = age + 1      # take the old value, add 1, store it back
+print("Next year:", age)`,
+task:{prompt:`Create a variable <code>name</code> holding your name (text) and a variable <code>age</code> holding a whole number. Then print a sentence that uses both.`,
+starter:`name =
+age =
+print("My name is", name, "and I am", age)`,
+test:`assert isinstance(name, str) and name.strip() != "", "name should be some text in quotes"
+assert isinstance(age, int), "age should be a whole number with no quotes, like 20"`,
+hint:`Text needs quotes: <code>name = "Sam"</code>. Numbers do not: <code>age = 20</code>.`,
+solution:`name = "Sam"
+age = 20
+print("My name is", name, "and I am", age)`}});
+
+add({id:"numbers-and-math", lv:"1", title:"Numbers and math",
+body:`<p>Python is a powerful calculator. Whole numbers are called <b>int</b> (integers); numbers with a decimal point are <b>float</b>.</p>
+<div class="tablewrap"><table><tr><th>Symbol</th><th>Meaning</th><th>Example</th><th>Result</th></tr>
+<tr><td><code>+</code> <code>-</code></td><td>add, subtract</td><td><code>7 - 2</code></td><td>5</td></tr>
+<tr><td><code>*</code></td><td>multiply</td><td><code>3 * 4</code></td><td>12</td></tr>
+<tr><td><code>/</code></td><td>divide (always gives a float)</td><td><code>7 / 2</code></td><td>3.5</td></tr>
+<tr><td><code>//</code></td><td>whole-number divide</td><td><code>7 // 2</code></td><td>3</td></tr>
+<tr><td><code>%</code></td><td>remainder</td><td><code>7 % 2</code></td><td>1</td></tr>
+<tr><td><code>**</code></td><td>power</td><td><code>2 ** 3</code></td><td>8</td></tr></table></div>
+<p>Python follows the usual order: brackets first, then powers, then <code>* /</code>, then <code>+ -</code>.</p>`,
+example:`price = 4.50
+quantity = 3
+total = price * quantity
+print("Total:", total)
+print("Rounded:", round(10 / 3, 2))
+print((2 + 3) * 4, "vs", 2 + 3 * 4)`,
+task:{prompt:`There are 10 cookies and 3 children. Store how many cookies each child gets (whole cookies only) in <code>each</code>, and how many are left over in <code>left</code>.`,
+starter:`cookies = 10
+children = 3
+each =
+left =
+print(each, left)`,
+test:`assert each == 3, "each should be 3. Which operator does whole-number division?"
+assert left == 1, "left should be 1. Which operator gives the remainder?"`,
+hint:`Use <code>//</code> for <code>each</code> and <code>%</code> for <code>left</code>, with the variables, not the numbers.`,
+solution:`cookies = 10
+children = 3
+each = cookies // children
+left = cookies % children
+print(each, left)`}});
+
+add({id:"text-strings", lv:"1", title:"Working with text",
+body:`<p>Text in Python is called a <b>string</b>: a string of characters between quotes. Single <code>'</code> or double <code>"</code> quotes both work.</p>
+<ul><li><code>+</code> joins strings together. <code>*</code> repeats them.</li>
+<li><code>len(text)</code> counts the characters, including spaces.</li>
+<li>An <b>f-string</b> lets you drop variables straight into text: put <code>f</code> before the quote and the variable in curly brackets <code>{ }</code>.</li></ul>`,
+example:`first = "Grace"
+last = "Hopper"
+full = first + " " + last
+print(full)
+print(len(full), "characters")
+print("ha" * 3)
+print(f"Hello, {first}! Your name has {len(full)} letters.")`,
+task:{prompt:`Join <code>first</code> and <code>last</code> with a space in between and store the result in <code>full</code>. Then print an f-string like <code>Ada Lovelace has 12 characters</code>.`,
+starter:`first = "Ada"
+last = "Lovelace"
+full =
+`,
+test:`assert full == "Ada Lovelace", "full should be exactly 'Ada Lovelace' (do not forget the space)"`,
+check2:(out)=> /Ada Lovelace has 12 characters/.test(out) ? true : "Print the sentence with an f-string: f\"{full} has {len(full)} characters\"",
+hint:`<code>full = first + " " + last</code>, then <code>print(f"{full} has {len(full)} characters")</code>.`,
+solution:`first = "Ada"
+last = "Lovelace"
+full = first + " " + last
+print(f"{full} has {len(full)} characters")`}});
+
+add({id:"asking-questions", lv:"1", title:"Asking questions with input()",
+body:`<p><code>input()</code> pauses the program and waits for the user to type an answer. Whatever they type comes back as a string you can store in a variable.</p>
+<p>On this page there is no one to type while the program runs, so the code box has an <b>Answers</b> field. Each line in it is one answer, used in order. Change the answers and run again.</p>`,
+example:`food = input("What is your favourite food? ")
+print("Yum,", food, "sounds great!")`,
+exInputs:"pizza",
+task:{prompt:`Ask the user for their name and greet them with <code>Hello, NAME!</code> (for example <code>Hello, Sam!</code>).`,
+starter:`name = input("What is your name? ")
+`,
+inputs:"Sam",
+check:(out,code,inp)=>{ const n=(inp||"").split("\n")[0]; return out.includes("Hello, "+n+"!") ? true : `Expected to see: Hello, ${n}!`; },
+hint:`Use an f-string: <code>print(f"Hello, {name}!")</code>.`,
+solution:`name = input("What is your name? ")
+print(f"Hello, {name}!")`}});
+
+add({id:"types-and-conversion", lv:"1", title:"Converting types",
+body:`<p><code>input()</code> always gives back <b>text</b>, even if the user types a number. <code>"5" + 1</code> is an error, because text and numbers cannot be added.</p>
+<p>Convert between types with:</p>
+<ul><li><code>int("5")</code> → the number 5</li><li><code>float("2.5")</code> → 2.5</li><li><code>str(42)</code> → the text "42"</li><li><code>type(x)</code> tells you what type something is.</li></ul>`,
+example:`a = "5"
+b = 1
+print(type(a), type(b))
+print(int(a) + b)
+print(a + str(b))   # joins text: 51`,
+task:{prompt:`Ask for the user's age, convert it to a number, and print <code>Next year you will be N</code>.`,
+starter:`age = input("How old are you? ")
+`,
+inputs:"15",
+check:(out,code,inp)=>{ const n=parseInt((inp||"").split("\n")[0],10); if(isNaN(n)) return "Put a whole number in the Answers field."; return out.includes("Next year you will be "+(n+1)) ? true : `Expected: Next year you will be ${n+1}`; },
+hint:`Wrap the input in <code>int( )</code>, then add 1.`,
+solution:`age = int(input("How old are you? "))
+print("Next year you will be", age + 1)`}});
+
+add({id:"decisions-if", lv:"1", title:"Making decisions with if",
+body:`<p>Programs make choices with <code>if</code>, <code>elif</code> ("else if") and <code>else</code>. Python checks each condition from top to bottom and runs the first block that is true.</p>
+<p>Comparisons: <code>==</code> equal, <code>!=</code> not equal, <code>&lt;</code> <code>&gt;</code> <code>&lt;=</code> <code>&gt;=</code>. Combine them with <code>and</code>, <code>or</code>, <code>not</code>.</p>
+<div class="note"><b>Two rules that trip up beginners:</b> the <code>if</code> line ends with a colon <code>:</code>, and the lines that belong to it are <b>indented by 4 spaces</b> (press <kbd>Tab</kbd>).</div>`,
+example:`score = 72
+if score >= 80:
+    print("Grade A")
+elif score >= 60:
+    print("Grade B")
+else:
+    print("Keep practising")
+print("This line always runs")`,
+task:{prompt:`Set <code>temperature = 30</code>. Print <code>Hot</code> if it is 30 or more, <code>Warm</code> if it is 20 or more, otherwise <code>Cold</code>. Use <code>if</code>, <code>elif</code> and <code>else</code>, then try other temperatures.`,
+starter:`temperature = 30
+`,
+check:(out,code)=>{ if(!/elif/.test(code)||!/else\s*:/.test(code)) return "Use if, elif and else."; const m=code.match(/temperature\s*=\s*(-?\d+)/); const t=m?+m[1]:30; const want=t>=30?"Hot":t>=20?"Warm":"Cold"; return out.trim()===want ? true : `With temperature ${t}, the output should be just: ${want}`; },
+hint:`<code>if temperature &gt;= 30:</code> then an indented <code>print("Hot")</code>, and so on.`,
+solution:`temperature = 30
+if temperature >= 30:
+    print("Hot")
+elif temperature >= 20:
+    print("Warm")
+else:
+    print("Cold")`}});
+
+add({id:"lists", lv:"1", title:"Lists",
+body:`<p>A <b>list</b> holds many values in order, inside square brackets. Each item has a position called an <b>index</b>, and counting starts at <b>0</b>.</p>
+<ul><li><code>items[0]</code> first item, <code>items[-1]</code> last item</li>
+<li><code>items.append(x)</code> adds to the end; <code>items.remove(x)</code> removes</li>
+<li><code>len(items)</code> how many; <code>x in items</code> is it there?</li>
+<li><code>items[1:3]</code> a <b>slice</b>: items at index 1 and 2</li></ul>`,
+example:`colours = ["red", "green", "blue"]
+print(colours[0], colours[-1])
+colours.append("yellow")
+print(colours, len(colours))
+print("green" in colours)
+print(colours[1:3])`,
+task:{prompt:`Make a list called <code>fruits</code> with three fruits, then add <code>"mango"</code> with <code>append</code>. Print the first fruit and the length of the list.`,
+starter:`fruits =
+`,
+test:`assert isinstance(fruits, list), "fruits should be a list in [square brackets]"
+assert "mango" in fruits, "use fruits.append(\\"mango\\")"
+assert len(fruits) >= 4, "start with three fruits, then append mango"`,
+hint:`<code>fruits = ["apple", "banana", "kiwi"]</code> then <code>fruits.append("mango")</code>.`,
+solution:`fruits = ["apple", "banana", "kiwi"]
+fruits.append("mango")
+print(fruits[0], len(fruits))`}});
+
+add({id:"for-loops", lv:"1", title:"Repeating with for loops",
+body:`<p>A <b>loop</b> repeats code so you do not have to write it many times. A <code>for</code> loop goes through each item in a list (or each letter in a string) one at a time.</p>
+<p><code>range(1, 6)</code> produces the numbers 1, 2, 3, 4, 5. The end number is not included.</p>`,
+example:`for colour in ["red", "green", "blue"]:
+    print("I like", colour)
+
+for n in range(1, 6):
+    print(n, "squared is", n * n)`,
+task:{prompt:`Print the 5 times table from <code>5 x 1 = 5</code> to <code>5 x 10 = 50</code>, one line each, using a loop.`,
+starter:`for n in range(1, 11):
+    `,
+check:(out)=>{ const lines=out.trim().split("\n").map(s=>s.trim()); for(let i=1;i<=10;i++){ if(!lines.includes(`5 x ${i} = ${5*i}`)) return `Missing the line: 5 x ${i} = ${5*i}`; } return true; },
+hint:`Inside the loop: <code>print(f"5 x {n} = {5 * n}")</code>.`,
+solution:`for n in range(1, 11):
+    print(f"5 x {n} = {5 * n}")`}});
+
+add({id:"while-loops", lv:"1", title:"while loops",
+body:`<p>A <code>while</code> loop keeps going <b>as long as</b> a condition is true. Use it when you do not know in advance how many times to repeat.</p>
+<p><code>break</code> leaves a loop immediately. <code>continue</code> skips to the next round.</p>
+<div class="note">Make sure something inside the loop changes the condition. A loop that never ends will freeze this page; if that happens, reload it.</div>`,
+example:`money = 20
+week = 0
+while money < 100:
+    money = money + 15
+    week = week + 1
+print("After", week, "weeks you have", money)`,
+task:{prompt:`Using a <code>while</code> loop, count down from 5 to 1 (one number per line), then print <code>Liftoff!</code>.`,
+starter:`count = 5
+`,
+check:(out,code)=>{ if(!/while/.test(code)) return "Use a while loop."; return out.trim().split(/\s+/).join(" ")==="5 4 3 2 1 Liftoff!" ? true : "Expected 5, 4, 3, 2, 1 on separate lines, then Liftoff!"; },
+hint:`<code>while count &gt; 0:</code> print it, then <code>count = count - 1</code>. Put the Liftoff print after the loop, not indented.`,
+solution:`count = 5
+while count > 0:
+    print(count)
+    count = count - 1
+print("Liftoff!")`}});
+
+add({id:"project-guessing-game", lv:"1", title:"Project: guessing game",
+body:`<p>Time to combine everything from Level 1: variables, input, conversion, if/elif/else and a loop. You will build a number guessing game.</p>
+<p>The program has a secret number. It keeps asking for guesses and says <code>Too low</code> or <code>Too high</code> until the guess is right, then prints <code>Correct!</code>.</p>
+<p>Plan first, code second. Many programmers write the steps as comments before writing any code:</p>`,
+example:`# 1. store the secret number
+# 2. repeat forever:
+#    a. ask for a guess, convert to int
+#    b. compare and print a message
+#    c. stop the loop if correct
+print("Plan written. Now build it below!")`,
+task:{prompt:`Build the guessing game with <code>secret = 7</code>. The Answers field already has the guesses 3, 9 and 7.`,
+starter:`secret = 7
+`,
+inputs:"3\n9\n7",
+check:(out)=>{ for(const w of ["Too low","Too high","Correct!"]) if(!out.includes(w)) return `Expected to see "${w}" with the guesses 3, 9, 7.`; return true; },
+hint:`Use <code>while True:</code>, ask for a guess inside it, and <code>break</code> after printing Correct!.`,
+solution:`secret = 7
+while True:
+    guess = int(input("Your guess: "))
+    if guess < secret:
+        print("Too low")
+    elif guess > secret:
+        print("Too high")
+    else:
+        print("Correct!")
+        break`}});
+
+/* ===== LEVEL 2 ===== */
+add({id:"functions", lv:"2", title:"Functions",
+body:`<p>A <b>function</b> is a named, reusable block of code. You have already used built-in ones like <code>print</code> and <code>len</code>. Now you will write your own with <code>def</code>.</p>
+<ul><li><b>Parameters</b> are the inputs listed in brackets.</li>
+<li><code>return</code> sends a result back to whoever called the function. Printing is not the same as returning: a returned value can be stored and used.</li></ul>`,
+example:`def greet(name, greeting="Hello"):
+    return f"{greeting}, {name}!"
+
+print(greet("Ana"))
+print(greet("Ben", "Good morning"))
+
+def double(n):
+    return n * 2
+
+result = double(21)
+print(result)`,
+task:{prompt:`Write a function <code>area(width, height)</code> that <b>returns</b> the area of a rectangle.`,
+starter:`def area(width, height):
+
+print(area(3, 4))`,
+test:`assert area(3, 4) == 12, "area(3, 4) should return 12"
+assert area(0, 5) == 0, "area(0, 5) should return 0"
+assert area(2.5, 2) == 5, "area(2.5, 2) should return 5.0"`,
+hint:`One line inside the function: <code>return width * height</code>.`,
+solution:`def area(width, height):
+    return width * height
+
+print(area(3, 4))`}});
+
+add({id:"dictionaries", lv:"2", title:"Dictionaries",
+body:`<p>A <b>dictionary</b> stores pairs: a <b>key</b> and its <b>value</b>, like a word and its meaning. Look things up by key instead of by position.</p>
+<ul><li><code>d["key"]</code> read a value; <code>d["key"] = value</code> add or change one</li>
+<li><code>d.get("key", default)</code> read safely when the key might be missing</li>
+<li><code>for key, value in d.items():</code> loop over every pair</li></ul>`,
+example:`ages = {"Ana": 31, "Ben": 25}
+ages["Cai"] = 40
+ages["Ben"] = 26
+print(ages["Ana"])
+print(ages.get("Dee", "unknown"))
+for name, age in ages.items():
+    print(name, "is", age)`,
+task:{prompt:`A shop's <code>stock</code> is below. Add <code>"cherry"</code> with 12, change <code>"banana"</code> to 6, then print each fruit and its count.`,
+starter:`stock = {"apple": 5, "banana": 0}
+`,
+test:`assert stock == {"apple": 5, "banana": 6, "cherry": 12}, "stock should end as apple 5, banana 6, cherry 12"`,
+hint:`<code>stock["cherry"] = 12</code>. Then loop with <code>for fruit, count in stock.items():</code>.`,
+solution:`stock = {"apple": 5, "banana": 0}
+stock["cherry"] = 12
+stock["banana"] = 6
+for fruit, count in stock.items():
+    print(fruit, count)`}});
+
+add({id:"tuples-and-sets", lv:"2", title:"Tuples and sets",
+body:`<p>A <b>tuple</b> is like a list that cannot be changed, written with round brackets: <code>point = (3, 4)</code>. Use it for values that belong together. You can <b>unpack</b> it: <code>x, y = point</code>.</p>
+<p>A <b>set</b> holds unique values with no order. Turning a list into a set removes duplicates. Sets can also find what two groups share (<code>&amp;</code>) or combine them (<code>|</code>).</p>`,
+example:`point = (3, 4)
+x, y = point
+print(x, y)
+
+a = {"python", "maths", "art"}
+b = {"art", "music", "python"}
+print(a & b)   # in both
+print(a | b)   # in either
+print(set([1, 1, 2, 3, 3]))`,
+task:{prompt:`Given the list <code>votes</code>, make <code>unique</code> a set of the different names, and <code>count</code> how many different people got votes.`,
+starter:`votes = ["Ana", "Ben", "Ana", "Cai", "Ben", "Ana"]
+unique =
+count =
+print(unique, count)`,
+test:`assert unique == {"Ana", "Ben", "Cai"}, "unique should be the set of the three names"
+assert count == 3, "count should be 3. Try len(unique)."`,
+hint:`<code>unique = set(votes)</code> and <code>count = len(unique)</code>.`,
+solution:`votes = ["Ana", "Ben", "Ana", "Cai", "Ben", "Ana"]
+unique = set(votes)
+count = len(unique)
+print(unique, count)`}});
+
+add({id:"string-methods", lv:"2", title:"String tools",
+body:`<p>Strings come with built-in tools called <b>methods</b>. You call them with a dot after the string. They return a new string; the original does not change.</p>
+<div class="tablewrap"><table><tr><th>Method</th><th>Does</th></tr>
+<tr><td><code>.upper()</code> <code>.lower()</code> <code>.title()</code></td><td>change capital letters</td></tr>
+<tr><td><code>.strip()</code></td><td>remove spaces at both ends</td></tr>
+<tr><td><code>.replace(a, b)</code></td><td>swap every <code>a</code> for <code>b</code></td></tr>
+<tr><td><code>.split()</code></td><td>break into a list of words</td></tr>
+<tr><td><code>" ".join(list)</code></td><td>glue a list back into one string</td></tr>
+<tr><td><code>.startswith()</code> <code>.count()</code> <code>.find()</code></td><td>search inside text</td></tr></table></div>
+<p>Format numbers in f-strings with <code>{price:.2f}</code> for 2 decimal places.</p>`,
+example:`msg = "  the quick brown fox  "
+print(msg.strip().upper())
+words = msg.split()
+print(words)
+print("-".join(words))
+print(msg.replace("fox", "cat").strip())
+price = 3.14159
+print(f"Price: {price:.2f}")`,
+task:{prompt:`Clean up <code>messy</code> so that <code>clean</code> is <code>"Hello World"</code> (no extra spaces, each word capitalised), then make <code>words</code> a list of its words.`,
+starter:`messy = "   hello WORLD   "
+clean =
+words =
+print(clean, words)`,
+test:`assert clean == "Hello World", "clean should be exactly 'Hello World'. Try .strip() then .title()"
+assert words == ["Hello", "World"], "words should be ['Hello', 'World']. Try clean.split()"`,
+hint:`Methods can be chained: <code>messy.strip().title()</code>.`,
+solution:`messy = "   hello WORLD   "
+clean = messy.strip().title()
+words = clean.split()
+print(clean, words)`}});
+
+add({id:"list-comprehensions", lv:"2", title:"List comprehensions",
+body:`<p>A <b>list comprehension</b> builds a new list in one line. It reads almost like English: "give me <i>this</i> for each item in that list, if a condition holds".</p>
+<p><code>[expression for item in iterable if condition]</code></p>
+<p>The same idea works for dictionaries: <code>{k: v for ...}</code>.</p>`,
+example:`nums = [1, 2, 3, 4, 5, 6]
+
+doubled = [n * 2 for n in nums]
+evens = [n for n in nums if n % 2 == 0]
+lengths = {word: len(word) for word in ["hi", "hello", "hey"]}
+
+print(doubled)
+print(evens)
+print(lengths)`,
+task:{prompt:`Using comprehensions, make <code>squares</code> = the squares of 1 to 10, and <code>odd_squares</code> = only the odd numbers from <code>squares</code>.`,
+starter:`squares =
+odd_squares =
+print(squares)
+print(odd_squares)`,
+test:`assert squares == [1, 4, 9, 16, 25, 36, 49, 64, 81, 100], "squares should be the squares of 1..10"
+assert odd_squares == [1, 9, 25, 49, 81], "odd_squares should keep only the odd ones"`,
+hint:`<code>[n ** 2 for n in range(1, 11)]</code>, then filter with <code>if s % 2 == 1</code>.`,
+solution:`squares = [n ** 2 for n in range(1, 11)]
+odd_squares = [s for s in squares if s % 2 == 1]
+print(squares)
+print(odd_squares)`}});
+
+add({id:"handling-errors", lv:"2", title:"Handling errors with try",
+body:`<p>Some errors are expected: a user types "abc" when you asked for a number, or a value is zero. Instead of crashing, catch the error with <code>try</code> / <code>except</code>.</p>
+<p>Put the risky code in <code>try</code>. If a specific error happens, Python jumps to the matching <code>except</code> block. You can also raise your own errors with <code>raise ValueError("message")</code>.</p>`,
+example:`for text in ["42", "abc", "7"]:
+    try:
+        number = int(text)
+        print("Got", number)
+    except ValueError:
+        print(text, "is not a number")
+
+try:
+    print(10 / 0)
+except ZeroDivisionError:
+    print("You cannot divide by zero")`,
+task:{prompt:`Write <code>safe_divide(a, b)</code> that returns <code>a / b</code>, or <code>None</code> if <code>b</code> is zero. Catch the error with try/except instead of checking with if.`,
+starter:`def safe_divide(a, b):
+
+print(safe_divide(10, 2), safe_divide(1, 0))`,
+test:`assert safe_divide(10, 2) == 5, "safe_divide(10, 2) should be 5.0"
+assert safe_divide(1, 0) is None, "safe_divide(1, 0) should return None"`,
+check2:(out,code)=> /try\s*:/.test(code)&&/except/.test(code) ? true : "Use try and except inside the function.",
+hint:`<code>try:</code> → <code>return a / b</code>; <code>except ZeroDivisionError:</code> → <code>return None</code>.`,
+solution:`def safe_divide(a, b):
+    try:
+        return a / b
+    except ZeroDivisionError:
+        return None
+
+print(safe_divide(10, 2), safe_divide(1, 0))`}});
+
+add({id:"modules", lv:"2", title:"Modules: math and random",
+body:`<p>Python ships with a big <b>standard library</b>: ready-made modules you load with <code>import</code>. Two useful ones:</p>
+<ul><li><code>math</code>: <code>math.sqrt</code>, <code>math.pi</code>, <code>math.floor</code>, <code>math.ceil</code></li>
+<li><code>random</code>: <code>random.randint(1, 6)</code>, <code>random.choice(list)</code>, <code>random.shuffle(list)</code></li></ul>
+<p>Thousands more modules can be installed from the internet once Python is on your own computer (see Next steps).</p>`,
+example:`import math
+import random
+
+print(math.sqrt(81), round(math.pi, 4))
+print("Dice:", random.randint(1, 6))
+print("Lunch:", random.choice(["soup", "rice", "salad"]))`,
+task:{prompt:`Write <code>circle_area(r)</code> using <code>math.pi</code>, and <code>roll()</code> that returns a random whole number from 1 to 6.`,
+starter:`import math
+import random
+
+def circle_area(r):
+
+
+def roll():
+
+print(circle_area(2), roll())`,
+test:`assert abs(circle_area(2) - 12.566) < 0.01, "circle_area(2) should be about 12.566 (pi * r * r)"
+rolls = [roll() for _ in range(200)]
+assert all(1 <= r <= 6 and r == int(r) for r in rolls), "roll() should return whole numbers from 1 to 6"
+assert len(set(rolls)) > 3, "roll() should be random, not always the same"`,
+hint:`<code>return math.pi * r ** 2</code> and <code>return random.randint(1, 6)</code>.`,
+solution:`import math
+import random
+
+def circle_area(r):
+    return math.pi * r ** 2
+
+def roll():
+    return random.randint(1, 6)
+
+print(circle_area(2), roll())`}});
+
+add({id:"sorting-and-lambda", lv:"2", title:"Sorting and lambda",
+body:`<p><code>sorted(list)</code> returns a new sorted list; <code>list.sort()</code> sorts in place. Add <code>reverse=True</code> for biggest first.</p>
+<p>To sort by something specific, pass a <code>key</code>: a function that picks what to compare. A <b>lambda</b> is a tiny one-line function without a name: <code>lambda s: s[1]</code> means "given s, give back s[1]".</p>`,
+example:`words = ["banana", "Kiwi", "apple", "fig"]
+print(sorted(words))
+print(sorted(words, key=str.lower))
+print(sorted(words, key=len))
+print(max(words, key=len))
+
+people = [("Ana", 31), ("Ben", 25), ("Cai", 40)]
+print(sorted(people, key=lambda p: p[1]))`,
+task:{prompt:`Sort <code>students</code> by score, highest first, into <code>ranking</code>. Store the top student's name in <code>top</code>.`,
+starter:`students = [("Ana", 88), ("Ben", 95), ("Cai", 72), ("Dee", 91)]
+ranking =
+top =
+print(ranking, top)`,
+test:`assert ranking == [("Ben", 95), ("Dee", 91), ("Ana", 88), ("Cai", 72)], "ranking should go from highest score to lowest"
+assert top == "Ben", "top should be the name only: 'Ben'"`,
+hint:`<code>sorted(students, key=lambda s: s[1], reverse=True)</code>; the name of the first tuple is <code>ranking[0][0]</code>.`,
+solution:`students = [("Ana", 88), ("Ben", 95), ("Cai", 72), ("Dee", 91)]
+ranking = sorted(students, key=lambda s: s[1], reverse=True)
+top = ranking[0][0]
+print(ranking, top)`}});
+
+add({id:"project-gradebook", lv:"2", title:"Project: gradebook",
+body:`<p>Combine functions, dictionaries, loops and sorting into a small gradebook. This is the kind of code people write at work to summarise data.</p>
+<p>Break the problem into small functions. Each function does one job and can be tested on its own.</p>`,
+example:`grades = {"Ana": [80, 90, 100], "Ben": [70, 75, 80]}
+for name, marks in grades.items():
+    print(name, "total:", sum(marks), "count:", len(marks))`,
+task:{prompt:`Write <code>average(marks)</code> returning the mean of a list, <code>report(grades)</code> returning a new dict of name → average rounded to 1 decimal, and <code>best(grades)</code> returning the name with the highest average.`,
+starter:`grades = {
+    "Ana": [80, 90, 100],
+    "Ben": [70, 75, 80],
+    "Cai": [95, 85, 92],
+}
+
+def average(marks):
+
+
+def report(grades):
+
+
+def best(grades):
+
+
+print(report(grades), best(grades))`,
+test:`assert average([1, 2, 3]) == 2, "average([1, 2, 3]) should be 2"
+assert report(grades) == {"Ana": 90.0, "Ben": 75.0, "Cai": 90.7}, "report should round each average to 1 decimal"
+assert best(grades) == "Cai", "best should return 'Cai'"`,
+hint:`<code>sum(marks) / len(marks)</code>. A dict comprehension builds the report. For best: <code>max(grades, key=lambda n: average(grades[n]))</code>.`,
+solution:`grades = {
+    "Ana": [80, 90, 100],
+    "Ben": [70, 75, 80],
+    "Cai": [95, 85, 92],
+}
+
+def average(marks):
+    return sum(marks) / len(marks)
+
+def report(grades):
+    return {name: round(average(m), 1) for name, m in grades.items()}
+
+def best(grades):
+    return max(grades, key=lambda name: average(grades[name]))
+
+print(report(grades), best(grades))`}});
+
+/* ===== LEVEL 3 ===== */
+add({id:"classes", lv:"3", title:"Classes and objects",
+body:`<p>A <b>class</b> is a blueprint; an <b>object</b> is a thing built from it. A <code>Dog</code> class describes what every dog has (a name) and can do (bark). Each actual dog is an object.</p>
+<ul><li><code>__init__</code> runs when an object is created and sets up its data.</li>
+<li><code>self</code> means "this particular object". Data stored on <code>self</code> are <b>attributes</b>; functions in a class are <b>methods</b>.</li></ul>`,
+example:`class Dog:
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+
+    def bark(self):
+        return f"{self.name} says woof!"
+
+    def birthday(self):
+        self.age += 1
+
+rex = Dog("Rex", 3)
+print(rex.bark())
+rex.birthday()
+print(rex.name, "is now", rex.age)`,
+task:{prompt:`Create a class <code>Rectangle</code> that stores <code>width</code> and <code>height</code>, with methods <code>area()</code> and <code>perimeter()</code>.`,
+starter:`class Rectangle:
+    def __init__(self, width, height):
+
+
+r = Rectangle(3, 5)
+print(r.area(), r.perimeter())`,
+test:`r = Rectangle(3, 5)
+assert r.width == 3 and r.height == 5, "store width and height on self"
+assert r.area() == 15, "area of 3 x 5 should be 15"
+assert r.perimeter() == 16, "perimeter of 3 x 5 should be 16"`,
+hint:`In <code>__init__</code>: <code>self.width = width</code>. Methods take <code>self</code> as their first parameter.`,
+solution:`class Rectangle:
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+
+    def area(self):
+        return self.width * self.height
+
+    def perimeter(self):
+        return 2 * (self.width + self.height)
+
+r = Rectangle(3, 5)
+print(r.area(), r.perimeter())`}});
+
+add({id:"inheritance", lv:"3", title:"Inheritance and special methods",
+body:`<p><b>Inheritance</b> lets a class reuse another: <code>class Cat(Animal)</code> gets everything <code>Animal</code> has and can change or add behaviour. <code>super()</code> calls the parent's version.</p>
+<p><b>Special methods</b> (with double underscores) let objects work with Python's built-in features: <code>__str__</code> controls what <code>print</code> shows, <code>__len__</code> works with <code>len()</code>, <code>__eq__</code> with <code>==</code>.</p>`,
+example:`class Animal:
+    def __init__(self, name):
+        self.name = name
+    def speak(self):
+        return "..."
+    def __str__(self):
+        return f"{type(self).__name__} named {self.name}"
+
+class Cat(Animal):
+    def speak(self):
+        return "Meow"
+
+class Cow(Animal):
+    def speak(self):
+        return "Moo"
+
+for a in [Cat("Tom"), Cow("Daisy")]:
+    print(a, "->", a.speak())`,
+task:{prompt:`Finish <code>Square</code> and <code>Circle</code>, both inheriting from <code>Shape</code>. Each needs <code>area()</code>, and <code>str(Square(2))</code> should be <code>"Square(2)"</code>.`,
+starter:`import math
+
+class Shape:
+    def area(self):
+        raise NotImplementedError
+
+class Square(Shape):
+    def __init__(self, side):
+        self.side = side
+
+class Circle(Shape):
+    def __init__(self, r):
+        self.r = r
+
+shapes = [Square(2), Circle(1)]
+for s in shapes:
+    print(s, s.area())`,
+test:`assert isinstance(Square(1), Shape) and isinstance(Circle(1), Shape), "both should inherit from Shape"
+assert Square(3).area() == 9, "Square(3).area() should be 9"
+assert abs(Circle(1).area() - math.pi) < 1e-9, "Circle(1).area() should be pi"
+assert str(Square(2)) == "Square(2)", "add __str__ to Square returning 'Square(2)'"`,
+hint:`In Square: <code>def area(self): return self.side ** 2</code> and <code>def __str__(self): return f"Square({self.side})"</code>.`,
+solution:`import math
+
+class Shape:
+    def area(self):
+        raise NotImplementedError
+
+class Square(Shape):
+    def __init__(self, side):
+        self.side = side
+    def area(self):
+        return self.side ** 2
+    def __str__(self):
+        return f"Square({self.side})"
+
+class Circle(Shape):
+    def __init__(self, r):
+        self.r = r
+    def area(self):
+        return math.pi * self.r ** 2
+    def __str__(self):
+        return f"Circle({self.r})"
+
+shapes = [Square(2), Circle(1)]
+for s in shapes:
+    print(s, s.area())`}});
+
+add({id:"recursion", lv:"3", title:"Recursion",
+body:`<p>A <b>recursive</b> function calls itself on a smaller version of the problem. Every recursive function needs:</p>
+<ol><li>A <b>base case</b>: a simple input answered directly, which stops the calls.</li>
+<li>A <b>recursive case</b>: break the problem down and call the function again.</li></ol>
+<p>Recursion shines on things that contain smaller copies of themselves: folders inside folders, lists inside lists, family trees.</p>`,
+example:`def factorial(n):
+    if n <= 1:          # base case
+        return 1
+    return n * factorial(n - 1)   # recursive case
+
+print(factorial(5))   # 5 * 4 * 3 * 2 * 1`,
+task:{prompt:`Write <code>total(items)</code> that adds up every number in a list, even when lists are nested inside lists.`,
+starter:`def total(items):
+
+
+print(total([1, [2, 3], [4, [5]]]))`,
+test:`assert total([1, 2, 3]) == 6, "total([1, 2, 3]) should be 6"
+assert total([1, [2, 3], [4, [5]]]) == 15, "total([1, [2, 3], [4, [5]]]) should be 15"
+assert total([]) == 0, "an empty list totals 0"`,
+hint:`Loop over items. If <code>isinstance(x, list)</code>, add <code>total(x)</code>; otherwise add <code>x</code>.`,
+solution:`def total(items):
+    result = 0
+    for x in items:
+        if isinstance(x, list):
+            result += total(x)
+        else:
+            result += x
+    return result
+
+print(total([1, [2, 3], [4, [5]]]))`}});
+
+add({id:"generators", lv:"3", title:"Iterators and generators",
+body:`<p>Anything you can loop over is <b>iterable</b>. A <b>generator</b> is a function that produces values one at a time with <code>yield</code> instead of building a whole list in memory. It pauses after each <code>yield</code> and continues on the next request.</p>
+<p>This matters for huge or endless data: reading a big file line by line, or an infinite sequence. A <b>generator expression</b> uses round brackets: <code>sum(n * n for n in range(10))</code>.</p>`,
+example:`def count_up(limit):
+    n = 1
+    while n <= limit:
+        yield n
+        n += 1
+
+for x in count_up(3):
+    print(x)
+
+gen = count_up(100)
+print(next(gen), next(gen))
+print(sum(n * n for n in range(10)))`,
+task:{prompt:`Write a generator <code>evens(limit)</code> that yields the even numbers from 0 up to and including <code>limit</code>. Use <code>yield</code>.`,
+starter:`def evens(limit):
+
+
+print(list(evens(10)))`,
+test:`import types
+assert isinstance(evens(4), types.GeneratorType), "use yield so evens is a generator"
+assert list(evens(10)) == [0, 2, 4, 6, 8, 10], "evens(10) should give 0, 2, 4, 6, 8, 10"
+assert list(evens(1)) == [0], "evens(1) should give just 0"`,
+hint:`<code>for n in range(0, limit + 1, 2): yield n</code>.`,
+solution:`def evens(limit):
+    for n in range(0, limit + 1, 2):
+        yield n
+
+print(list(evens(10)))`}});
+
+add({id:"decorators", lv:"3", title:"Decorators",
+body:`<p>In Python, functions are values: you can pass them to other functions and return them. A <b>decorator</b> is a function that takes a function and returns an improved version of it.</p>
+<p>Writing <code>@my_decorator</code> above a <code>def</code> is shorthand for <code>func = my_decorator(func)</code>. Decorators are used for logging, timing, checking permissions and caching.</p>`,
+example:`def announce(func):
+    def wrapper(*args):
+        print("Calling", func.__name__, "with", args)
+        result = func(*args)
+        print("Got", result)
+        return result
+    return wrapper
+
+@announce
+def add(a, b):
+    return a + b
+
+add(2, 3)`,
+task:{prompt:`Write a decorator <code>shout</code> that makes a function's returned text UPPERCASE and adds <code>!</code> at the end.`,
+starter:`def shout(func):
+
+
+@shout
+def greet(name):
+    return f"hello {name}"
+
+print(greet("ana"))`,
+test:`assert greet("ana") == "HELLO ANA!", "greet('ana') should return 'HELLO ANA!'"
+@shout
+def word():
+    return "yes"
+assert word() == "YES!", "shout should work on any function"`,
+hint:`Inside <code>shout</code>, define <code>wrapper(*args)</code> that returns <code>func(*args).upper() + "!"</code>, then <code>return wrapper</code>.`,
+solution:`def shout(func):
+    def wrapper(*args):
+        return func(*args).upper() + "!"
+    return wrapper
+
+@shout
+def greet(name):
+    return f"hello {name}"
+
+print(greet("ana"))`}});
+
+add({id:"functional-tools", lv:"3", title:"zip, enumerate, map, filter",
+body:`<p>Python has built-ins that make loops shorter and clearer:</p>
+<ul><li><code>enumerate(list, start=1)</code> gives the position and the item together.</li>
+<li><code>zip(a, b)</code> pairs items from two lists.</li>
+<li><code>map(func, list)</code> applies a function to every item; <code>filter(func, list)</code> keeps items where it returns True.</li>
+<li><code>any()</code> / <code>all()</code> check whether some / every item is True.</li></ul>`,
+example:`names = ["Ana", "Ben", "Cai"]
+scores = [88, 95, 72]
+
+for rank, name in enumerate(names, start=1):
+    print(rank, name)
+
+print(dict(zip(names, scores)))
+print(list(map(str.upper, names)))
+print(list(filter(lambda s: s >= 80, scores)))
+print(any(s > 90 for s in scores), all(s > 60 for s in scores))`,
+task:{prompt:`Use <code>zip</code> to build <code>table</code>, a dict of item → price. Then use <code>enumerate</code> to print a numbered menu like <code>1. tea - 2.50</code>.`,
+starter:`items = ["tea", "coffee", "cake"]
+prices = [2.5, 3.0, 4.25]
+table =
+`,
+test:`assert table == {"tea": 2.5, "coffee": 3.0, "cake": 4.25}, "table should pair each item with its price"`,
+check2:(out)=> /1\.\s*tea\s*-\s*2\.50/.test(out)&&/3\.\s*cake\s*-\s*4\.25/.test(out) ? true : "Print a numbered menu like: 1. tea - 2.50 (use {price:.2f})",
+hint:`<code>table = dict(zip(items, prices))</code>; then <code>for i, (item, price) in enumerate(table.items(), start=1):</code>.`,
+solution:`items = ["tea", "coffee", "cake"]
+prices = [2.5, 3.0, 4.25]
+table = dict(zip(items, prices))
+for i, (item, price) in enumerate(table.items(), start=1):
+    print(f"{i}. {item} - {price:.2f}")`}});
+
+add({id:"algorithms", lv:"3", title:"Algorithms and speed",
+body:`<p>An <b>algorithm</b> is a step-by-step method for solving a problem. Different algorithms for the same problem can be very different in speed.</p>
+<p>Searching a list of a million names one by one (<b>linear search</b>) may take a million steps. If the list is sorted, <b>binary search</b> checks the middle, throws away the half that cannot contain the answer, and repeats. It needs about 20 steps.</p>
+<p>Programmers describe this with <b>Big-O</b>: linear search is <code>O(n)</code>, binary search is <code>O(log n)</code>.</p>`,
+example:`def linear_search(items, target):
+    for i, x in enumerate(items):
+        if x == target:
+            return i
+    return -1
+
+nums = list(range(0, 100, 3))
+print(linear_search(nums, 27))
+print(linear_search(nums, 28))`,
+task:{prompt:`Write <code>binary_search(items, target)</code> for a sorted list. Return the index of <code>target</code>, or <code>-1</code> if it is not there. Do not use <code>.index()</code> or <code>in</code>.`,
+starter:`def binary_search(items, target):
+    low = 0
+    high = len(items) - 1
+
+
+nums = [2, 5, 8, 12, 16, 23, 38, 56, 72, 91]
+print(binary_search(nums, 23), binary_search(nums, 7))`,
+test:`nums = [2, 5, 8, 12, 16, 23, 38, 56, 72, 91]
+for i, n in enumerate(nums):
+    assert binary_search(nums, n) == i, f"binary_search(nums, {n}) should be {i}"
+assert binary_search(nums, 7) == -1, "a missing value should return -1"
+assert binary_search([], 3) == -1, "an empty list should return -1"
+big = list(range(0, 2000000, 2))
+assert binary_search(big, 1999998) == 999999, "should work on a big list too"`,
+hint:`Loop <code>while low &lt;= high</code>: <code>mid = (low + high) // 2</code>. If the middle is too small, set <code>low = mid + 1</code>; too big, <code>high = mid - 1</code>.`,
+solution:`def binary_search(items, target):
+    low = 0
+    high = len(items) - 1
+    while low <= high:
+        mid = (low + high) // 2
+        if items[mid] == target:
+            return mid
+        elif items[mid] < target:
+            low = mid + 1
+        else:
+            high = mid - 1
+    return -1
+
+nums = [2, 5, 8, 12, 16, 23, 38, 56, 72, 91]
+print(binary_search(nums, 23), binary_search(nums, 7))`}});
+
+add({id:"capstone-todo", lv:"3", title:"Capstone: to-do manager",
+body:`<p>Your final project brings together classes, lists, error handling and string formatting. Build a <code>TodoList</code> class that a real app could use behind the scenes.</p>
+<p>Requirements:</p>
+<ul><li><code>add(task)</code> adds a task (not done yet). Adding an empty task raises <code>ValueError</code>.</li>
+<li><code>complete(task)</code> marks it done. If the task does not exist, raise <code>ValueError</code>.</li>
+<li><code>pending()</code> returns a list of tasks not done, in the order added.</li>
+<li><code>len(todo)</code> returns the number of tasks in total.</li></ul>`,
+example:`# A dict is a natural way to remember done / not done:
+tasks = {"buy milk": False, "call mum": True}
+for task, done in tasks.items():
+    mark = "x" if done else " "
+    print(f"[{mark}] {task}")`,
+task:{prompt:`Build the <code>TodoList</code> class to meet all four requirements.`,
+starter:`class TodoList:
+    def __init__(self):
+        self.tasks = {}
+
+todo = TodoList()
+todo.add("learn loops")
+todo.add("learn classes")
+todo.complete("learn loops")
+print(todo.pending(), len(todo))`,
+test:`t = TodoList()
+t.add("a"); t.add("b"); t.add("c")
+t.complete("b")
+assert t.pending() == ["a", "c"], "pending() should list unfinished tasks in order"
+assert len(t) == 3, "len(todo) should count all tasks (add __len__)"
+try:
+    t.complete("zzz")
+    raise AssertionError("complete() of a missing task should raise ValueError")
+except ValueError:
+    pass
+try:
+    t.add("")
+    raise AssertionError("add('') should raise ValueError")
+except ValueError:
+    pass`,
+hint:`<code>add</code>: <code>if not task.strip(): raise ValueError("empty task")</code>, then <code>self.tasks[task] = False</code>. <code>pending</code>: a list comprehension over <code>self.tasks.items()</code>.`,
+solution:`class TodoList:
+    def __init__(self):
+        self.tasks = {}
+
+    def add(self, task):
+        if not task.strip():
+            raise ValueError("Task cannot be empty")
+        self.tasks[task] = False
+
+    def complete(self, task):
+        if task not in self.tasks:
+            raise ValueError(f"No task called {task!r}")
+        self.tasks[task] = True
+
+    def pending(self):
+        return [t for t, done in self.tasks.items() if not done]
+
+    def __len__(self):
+        return len(self.tasks)
+
+todo = TodoList()
+todo.add("learn loops")
+todo.add("learn classes")
+todo.complete("learn loops")
+print(todo.pending(), len(todo))`}});
+
+/* ===== NEXT STEPS ===== */
+const SITES = [
+  ["futurecoder.io","https://futurecoder.io","Absolute beginner","A free, complete beginner course that runs in the browser, with hints and an error explainer. Great companion to Level 0 and 1."],
+  ["Reeborg's World","https://reeborg.ca","Absolute beginner","Program a little robot through mazes with Python. Very visual and gentle."],
+  ["CodeCombat","https://codecombat.com","Beginner","A fantasy adventure game where you move your hero by typing Python. The early levels are free."],
+  ["Python Tutor","https://pythontutor.com","All levels","Not a game: paste code and watch it run step by step, with boxes and arrows for every variable. Brilliant for understanding loops and functions."],
+  ["CheckiO","https://checkio.org","Beginner → advanced","A game map of islands full of Python puzzles. After solving, you can read other people's clever solutions."],
+  ["Exercism (Python track)","https://exercism.org/tracks/python","Beginner → advanced","Over 100 exercises with an in-browser editor and free feedback from volunteer mentors."],
+  ["Codewars","https://www.codewars.com","Beginner → advanced","Short challenges called kata, ranked from 8 kyu (easy) up to 1 kyu (hard). You earn ranks as you solve."],
+  ["Kaggle Learn: Python","https://www.kaggle.com/learn/python","Beginner → intermediate","Free short course with notebooks in the browser, leading into data science."],
+  ["CodinGame","https://www.codingame.com","Intermediate → advanced","Puzzles and bot-battle games where your Python code controls the action."],
+  ["The Python Challenge","http://www.pythonchallenge.com","Intermediate","A classic riddle game: each level's answer is the web address of the next level."],
+  ["Advent of Code","https://adventofcode.com","Intermediate → advanced","Daily story-based puzzles every December, with all past years free to play anytime."],
+  ["HackerRank (Python)","https://www.hackerrank.com/domains/python","Beginner → advanced","Structured practice by topic, with certificates you can earn for free."]
+];
+add({id:"next-steps", lv:"4", title:"Install Python and keep practising",
+body:`<p>You have finished the course material. Here is how to keep going outside this page.</p>
+<h2>Install Python on Windows</h2>
+<ol><li>Open your web browser and go to <a href="https://www.python.org/downloads/" target="_blank" rel="noopener">python.org/downloads</a>.</li>
+<li>Click the big yellow <b>Download Python</b> button and open the file when it finishes.</li>
+<li>On the first screen, tick <b>Add python.exe to PATH</b>, then click <b>Install Now</b>.</li>
+<li>Open the Start menu, type <b>IDLE</b> and open it. This is Python's own simple editor. Click <b>File → New File</b>, write code, save it with a name ending in <code>.py</code>, and press <kbd>F5</kbd> to run it.</li>
+<li>When you are comfortable, install <a href="https://code.visualstudio.com/" target="_blank" rel="noopener">Visual Studio Code</a> with its Python extension. It is the editor most programmers use.</li></ol>
+<h2>Free games and practice sites</h2>
+<p>Ordered roughly from easiest to hardest. All have a free option; some offer paid extras you do not need.</p>
+<div class="sites">${SITES.map(s=>`<div class="site"><span class="lv">${s[2]}</span><a href="${s[1]}" target="_blank" rel="noopener">${s[0]}</a><p>${s[3]}</p></div>`).join("")}</div>
+<h2>Project ideas to try next</h2>
+<ul><li><b>Beginner:</b> a tip calculator, a quiz game, rock-paper-scissors against the computer.</li>
+<li><b>Intermediate:</b> a password generator, a word counter for a text file, a contacts book saved to a file.</li>
+<li><b>Advanced:</b> a text adventure with classes, a web scraper (with the <code>requests</code> module), a small website with Flask, or a game with <code>pygame</code>.</li></ul>
+<div class="note">The best way to get better: build small things you actually want, get stuck, read the error, search for it, and try again. That loop is what programming really is.</div>`});
+
+/* ---------------- app ---------------- */
+const $ = s => document.querySelector(s);
+const store = {
+  get(k,d){ try{ const v=localStorage.getItem(k); return v==null?d:JSON.parse(v);}catch(e){return d;} },
+  set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+};
+let done = new Set(store.get("pyz-done",[]));
+const lessonsWithTasks = L.filter(l=>l.task);
+
+const FRIENDLY = {
+  SyntaxError:"Python could not read this line. Look for a missing bracket ( ), quote mark, or colon : at the end of if/for/while/def lines.",
+  IndentationError:"The spaces at the start of a line are off. Lines inside if/for/while/def need 4 spaces; lines after them go back to the left.",
+  NameError:"Python does not know this name. Check the spelling and capital letters, and make sure the variable was created on an earlier line.",
+  TypeError:"Two things that do not fit together, such as adding text to a number. Use int() or str() to convert, and check how many values you pass to a function.",
+  ValueError:"The value has the right type but a wrong form, such as int(\"abc\").",
+  ZeroDivisionError:"You divided by zero, which is not allowed.",
+  IndexError:"You asked for a position that is not in the list. Remember counting starts at 0, so the last index is len(list) - 1.",
+  KeyError:"That key is not in the dictionary. Check the spelling, or use .get().",
+  AttributeError:"This kind of value does not have that method or attribute. Check the spelling after the dot.",
+  RecursionError:"The function called itself too many times. Check the base case stops it."
+};
+
+function esc(s){ return String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+
+function pyReady(){ return typeof window.pyRun === "function"; }
+function runPy(code, inputs){
+  const r = String(window.pyRun(code, inputs||""));
+  const ok = r[0]==="1"; const body = r.slice(1);
+  const i = body.indexOf("\u0000");
+  return {ok, out: i<0?body:body.slice(0,i), err: i<0?"":body.slice(i+1).trim()};
+}
+function showOut(el, res, opts={}){
+  let h = res.out ? esc(res.out) : (res.err? "" : '<span class="dim">(no output — did you forget print?)</span>');
+  if(res.err){
+    const name = (res.err.match(/(\w+(Error|Exception))/)||[])[1];
+    h += `<span class="err">${esc(res.err)}</span>`;
+    if(name && FRIENDLY[name] && !opts.noTip) h += `<span class="why">Tip: ${FRIENDLY[name]}</span>`;
+  }
+  el.innerHTML = h;
+}
+
+function lab(id, code, {tag="Example", inputs=null, task=false}={}){
+  const saved = store.get("pyz-code-"+id, null);
+  return `<div class="lab" data-id="${id}">
+    <div class="lab-head"><span class="tag">${tag}</span>
+      <button class="btn ghost" data-act="reset">Reset</button>
+      <button class="btn run" data-act="run" disabled>Run ▶</button>
+      ${task?'<button class="btn check" data-act="check" disabled>Check my answer</button>':''}
+    </div>
+    <textarea class="code" spellcheck="false" autocapitalize="off" autocomplete="off" id="ed-${id}" aria-label="${tag} code" rows="${Math.max(4,(saved??code).split("\n").length+1)}">${esc(saved??code)}</textarea>
+    ${inputs!=null?`<div class="inputs"><label for="in-${id}">Answers</label><textarea id="in-${id}" rows="${Math.max(1,inputs.split("\n").length)}">${esc(inputs)}</textarea></div>`:''}
+    <div class="out" id="out-${id}" aria-live="polite"><span class="dim">Click Run to see the result.</span></div>
+  </div>`;
+}
+
+function renderMap(cur){
+  $("#map").innerHTML = LEVELS.map(lv=>{
+    const items = L.filter(l=>l.lv===lv.id);
+    return `<div class="lvl"><h3>${lv.name}</h3>${items.map(l=>{
+      const n = L.indexOf(l);
+      return `<a href="#${l.id}" class="${l.id===cur?'on':''}"><span class="no">${lv.id==="4"?"→":lv.id+"."+(items.indexOf(l)+1)}</span><span>${l.title}</span>${done.has(l.id)?'<span class="tick" aria-label="completed">✓</span>':''}</a>`;
+    }).join("")}</div>`;
+  }).join("");
+  const c = lessonsWithTasks.filter(l=>done.has(l.id)).length;
+  $("#progTxt").textContent = `${c} / ${lessonsWithTasks.length}`;
+  $("#progBar").style.width = (100*c/lessonsWithTasks.length)+"%";
+}
+
+function renderHome(){
+  const next = lessonsWithTasks.find(l=>!done.has(l.id)) || L[L.length-1];
+  $("#page").innerHTML = `<div class="eyebrow">&gt;&gt;&gt; a free course · ${lessonsWithTasks.length} hands-on lessons</div>
+  <h1>Learn Python from zero, right here in your browser.</h1>
+  <div class="prose"><p>No installs, no sign-up, no computer experience needed. Each lesson explains one idea in plain words, lets you run real Python code, and finishes with a small task that checks your answer for you.</p></div>
+  <p><a class="cta" href="#${next.id}">${done.size? "Continue: "+next.title : "Start lesson 1"}</a></p>
+  <div class="levels">${LEVELS.map(lv=>{ const items=L.filter(l=>l.lv===lv.id); const t=items.filter(l=>l.task); const d=t.filter(l=>done.has(l.id)).length;
+    return `<a class="lcard" href="#${items[0].id}"><span class="k">${lv.id==="4"?"after the course":"level "+lv.id}</span><b>${lv.name.replace(/^.*· /,"")}</b><span>${lv.short}</span><span class="mini">${t.length? d+" of "+t.length+" tasks done":"install guide + 12 practice sites"}</span></a>`;}).join("")}</div>
+  <div class="prose"><h2>Try it now</h2><p>This is a real Python box. Click the yellow <b>Run</b> button.</p></div>
+  ${lab("home", 'name = "friend"\nfor i in range(3):\n    print(f"Hello, {name}! This is line {i + 1}.")', {tag:"Your first code"})}
+  <p class="boot" id="boot">Starting Python…</p>`;
+  wire();
+}
+
+function renderLesson(l){
+  const i = L.indexOf(l), prev = L[i-1], next = L[i+1];
+  const lv = LEVELS.find(x=>x.id===l.lv);
+  const t = l.task;
+  $("#page").innerHTML = `<div class="eyebrow">${lv.name}</div><h1>${l.title}</h1>
+  <div class="prose">${l.body}</div>
+  ${l.example?lab(l.id+"-ex", l.example, {tag:"Example", inputs:l.exInputs??null}):""}
+  ${t?`<section class="task"><h2><span class="pill">TASK</span> Your turn</h2><div class="prose"><p>${t.prompt}</p></div>
+    ${lab(l.id+"-task", t.starter, {tag:"Your code", inputs:t.inputs??null, task:true})}
+    <div id="res-${l.id}"></div>
+    <details><summary>Need a hint?</summary><div class="prose"><p>${t.hint}</p></div></details>
+    <details><summary>Show a solution</summary><pre>${esc(t.solution)}</pre></details>
+  </section>`:""}
+  <p class="boot" id="boot"></p>
+  <nav class="pager">${prev?`<a href="#${prev.id}"><small>← Previous</small>${prev.title}</a>`:`<a href="#home"><small>← Back</small>Course home</a>`}
+  ${next?`<a class="next" href="#${next.id}"><small>Next →</small>${next.title}</a>`:`<a class="next" href="#home"><small>Done</small>Course home</a>`}</nav>`;
+  wire(l);
+}
+
+function wire(lesson){
+  document.querySelectorAll(".lab").forEach(box=>{
+    const id = box.dataset.id, ed = box.querySelector("textarea.code"), out = box.querySelector(".out");
+    const inp = box.querySelector(".inputs textarea");
+    const original = ed.value; // fallback if nothing stored
+    ed.addEventListener("keydown", e=>{
+      if(e.key==="Tab" && !e.shiftKey){ e.preventDefault(); const s=ed.selectionStart, en=ed.selectionEnd; ed.setRangeText("    ", s, en, "end"); store.set("pyz-code-"+id, ed.value); }
+      else if(e.key==="Enter" && (e.ctrlKey||e.metaKey)){ e.preventDefault(); box.querySelector('[data-act="run"]').click(); }
+      else if(e.key==="Enter"){ // keep indentation of the current line, add 4 after a colon
+        const s=ed.selectionStart; const lineStart=ed.value.lastIndexOf("\n", s-1)+1; const line=ed.value.slice(lineStart, s);
+        let ind=(line.match(/^ */)||[""])[0]; if(/:\s*$/.test(line)) ind+="    ";
+        e.preventDefault(); ed.setRangeText("\n"+ind, s, ed.selectionEnd, "end"); store.set("pyz-code-"+id, ed.value);
+      }
+    });
+    ed.addEventListener("input", ()=>{ store.set("pyz-code-"+id, ed.value); ed.rows=Math.max(4, ed.value.split("\n").length+1); });
+    box.querySelector('[data-act="reset"]').onclick = ()=>{
+      const l = lesson; let orig = original;
+      if(id==="home") orig='name = "friend"\nfor i in range(3):\n    print(f"Hello, {name}! This is line {i + 1}.")';
+      else if(l && id===l.id+"-ex") orig=l.example; else if(l && id===l.id+"-task") orig=l.task.starter;
+      ed.value=orig; store.set("pyz-code-"+id, null); try{localStorage.removeItem("pyz-code-"+id);}catch(e){}
+      out.innerHTML='<span class="dim">Reset. Click Run to see the result.</span>';
+    };
+    box.querySelector('[data-act="run"]').onclick = ()=>{ out.innerHTML='<span class="dim">Running…</span>'; setTimeout(()=>showOut(out, runPy(ed.value, inp?inp.value:"")),10); };
+    const chk = box.querySelector('[data-act="check"]');
+    if(chk) chk.onclick = ()=> setTimeout(()=>checkTask(lesson, ed, inp, out), 10);
+  });
+  whenReady();
+}
+
+function checkTask(l, ed, inp, out){
+  const t = l.task, res = document.getElementById("res-"+l.id), code = ed.value, inputs = inp?inp.value:"";
+  const r = runPy(code, inputs); showOut(out, r);
+  let verdict = true;
+  if(r.err) verdict = "Your code has an error. Read the message in the output and fix it first.";
+  if(verdict===true && t.check) verdict = t.check(r.out, code, inputs);
+  if(verdict===true && t.test){
+    const tr = runPy(code + "\n\n" + t.test + "\nprint('\u0001OK')", inputs);
+    if(!tr.out.includes("\u0001OK")) verdict = tr.err ? tr.err.replace(/^Line \d+ -> /,"").replace(/^AssertionError: /,"") : "Not quite yet.";
+  }
+  if(verdict===true && t.check2) verdict = t.check2(r.out, code, inputs);
+  if(verdict===true){
+    done.add(l.id); store.set("pyz-done",[...done]); renderMap(l.id);
+    const i=L.indexOf(l), nx=L[i+1];
+    res.innerHTML = `<div class="result ok">Correct! Lesson complete. ${nx?`<a href="#${nx.id}">Next: ${nx.title} →</a>`:""}</div>`;
+  } else {
+    res.innerHTML = `<div class="result bad">Not yet: ${esc(verdict)}</div>`;
+  }
+}
+
+let readyTimer=null;
+function whenReady(){
+  const enable=()=>{ document.querySelectorAll('.lab .btn.run,.lab .btn.check').forEach(b=>b.disabled=false); const b=$("#boot"); if(b) b.textContent=""; };
+  if(pyReady()) return enable();
+  const b=$("#boot"); if(b) b.textContent="Starting Python… (the first load takes a few seconds)";
+  clearInterval(readyTimer);
+  readyTimer=setInterval(()=>{ if(pyReady()){ clearInterval(readyTimer); enable(); } }, 200);
+}
+
+function route(){
+  const id = location.hash.slice(1);
+  const l = L.find(x=>x.id===id);
+  renderMap(l?l.id:null);
+  if(l) renderLesson(l); else renderHome();
+  $("#map").classList.remove("open"); $("#menuBtn").setAttribute("aria-expanded","false");
+  window.scrollTo(0,0);
+}
+window.addEventListener("hashchange", route);
+$("#menuBtn").onclick = ()=>{ const o=$("#map").classList.toggle("open"); $("#menuBtn").setAttribute("aria-expanded", String(o)); };
+route();
+
+window.addEventListener("load", ()=>{ setTimeout(()=>{ if(!pyReady() && typeof brython==="function"){ try{ brython({debug:1}); }catch(e){ console.error(e); } } }, 60); });
+</script>
